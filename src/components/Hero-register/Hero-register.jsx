@@ -1,17 +1,29 @@
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import auth from "../../Firebase/firebase.config";
+import { useState } from "react";
 
 const Hero_register = () => {
+    const [registerError, setRegisterError] = useState('');
+    const [success, setSuccess] = useState('');
     const heroRegister = (e) => {
         e.preventDefault()
         const email = e.target.email.value;
         const password = e.target.password.value;
+        if(password.length < 6){
+           setRegisterError('password should be at least 6 charecter')
+           return;
+        }
+        // reset error
+        setRegisterError(' ')
         createUserWithEmailAndPassword(auth, email, password)
         .then(result => {
             console.log(result);
+            setSuccess('user successfully login')
         })
         .catch(error => {
             console.log(error);
+            const errormsg = error.message
+            setRegisterError(errormsg)
         })
         }
   return (
@@ -59,6 +71,8 @@ const Hero_register = () => {
             <div className="form-control mt-6">
               <button className="btn btn-primary">Hero register</button>
             </div>
+          { registerError && <p className="text-center text-red-500">{registerError}</p>}
+          {success && <p className="text-green-600 text-center">{success}</p>}
           </form>
         </div>
       </div>
