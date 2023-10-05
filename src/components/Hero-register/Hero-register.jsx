@@ -13,6 +13,10 @@ const Hero_register = () => {
            setRegisterError('password should be at least 6 charecter')
            return;
         }
+        else if(!/[A-Z]/.test(password)){
+          setRegisterError('Password should have at least single uppercase charecter');
+          return;
+        }
         // reset error
         setRegisterError(' ')
         createUserWithEmailAndPassword(auth, email, password)
