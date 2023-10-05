@@ -1,11 +1,16 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
 import auth from "../../Firebase/firebase.config";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
 const Hero_register = () => {
     const [registerError, setRegisterError] = useState('');
     const [success, setSuccess] = useState('');
+    const emailRef = useRef(null);
+    // refference for reset password 
     const heroRegister = (e) => {
+      setRegisterError('')
+      setSuccess('')
         e.preventDefault()
         const email = e.target.email.value;
         const password = e.target.password.value;
@@ -17,12 +22,21 @@ const Hero_register = () => {
           setRegisterError('Password should have at least single uppercase charecter');
           return;
         }
-        // reset error
-        setRegisterError(' ')
+        
         createUserWithEmailAndPassword(auth, email, password)
         .then(result => {
-            console.log(result);
+          if(result.user.emailVerified){
             setSuccess('user successfully login')
+          }
+          else{
+            alert('Email is not verified')
+          }
+          // console.log(result);
+            sendEmailVerification(auth.currentUser)
+            .then(()=>{
+              console.log('please check your mail and verify it');
+              return;
+            })
         })
         .catch(error => {
             console.log(error);
@@ -30,6 +44,26 @@ const Hero_register = () => {
             setRegisterError(errormsg)
         })
         }
+    const handleForgetPassword = () =>{
+      // console.log(emailRef.current.value);
+      const email = emailRef.current.value;
+        if(!email){
+          console.log('enter a email');
+          return;
+        }
+        else if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)){
+         console.log('Provide a valid email'); 
+         return;
+        }
+        sendPasswordResetEmail(auth, email)
+        .then(() => {
+          console.log('please check your email box');
+        })
+        .catch(error => {
+          console.log(error.message);
+        })
+
+    }
   return (
     <div className="hero min-h-screen bg-base-200">
       <div className="hero-content flex-col lg:flex-row-reverse">
@@ -50,6 +84,7 @@ const Hero_register = () => {
               <input
                 type="email"
                 placeholder="email"
+                ref={emailRef}
                 className="input input-bordered"
                 name="email"
                 required
@@ -67,7 +102,7 @@ const Hero_register = () => {
                 required
               />
               <label className="label">
-                <a href="#" className="label-text-alt link link-hover">
+                <a onClick={handleForgetPassword} href="#" className="label-text-alt link link-hover">
                   Forgot password?
                 </a>
               </label>
@@ -78,10 +113,16 @@ const Hero_register = () => {
           { registerError && <p className="text-center text-red-500">{registerError}</p>}
           {success && <p className="text-green-600 text-center">{success}</p>}
           </form>
+            <p className="ml-2">
+              Do not have an account?
+            <Link to={'/register'}>
+              <span className="text-red-500 ml-2">  Login</span>
+            </Link>
+            </p>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default Hero_register;
